@@ -143,7 +143,7 @@ def get_ETH_balance(address,channel):
 def get_ETH_add_list(command,channel):
     myETH_list = re.findall(r'-0.{41}-',command)
     if len(myETH_list)>10:
-        slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text="**Error:\tToo many accounts**")
+        slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text="*Error:\tToo many accounts*")
     else:
         for i in myETH_list:
             get_ETH_balance(i[1:-1],channel)
