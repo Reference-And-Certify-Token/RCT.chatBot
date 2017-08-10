@@ -93,6 +93,9 @@ slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
 
 
+# def test_format(command, channel):
+#     myTEXT = "*bold* `code` _italic_ ~strike~"
+#     slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text=myTEXT)
 
 
 
@@ -109,42 +112,80 @@ slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
 
 def get_ETH_balance(address):
-    response = urllib2.urlopen('https://api.etherscan.io/api?module=account&action=balance&address=0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a&tag=latest&apikey=YourApiKeyToken')
+    # test_response = urllib2.urlopen('https://api.etherscan.io/api?module=account&action=balance&address=0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a&tag=latest&apikey=YourApiKeyToken')
+    # sample accounts:
+    #		0xddBd2B932c763bA5b1b7AE3B362eac3e8d40121A
+    #		0x900d0881A2E85A8E4076412AD1CeFbE2D39c566c
+    #		0xbF09d77048E270b662330E9486b38B43cD781495
+    myURL = 'https://api.etherscan.io/api?module=account&action=balance&address='+address+'&tag=latest&apikey=YourApiKeyToken'
+    response = urllib2.urlopen(myURL)
     myHtml = response.read()
     my_req_json_string = myHtml.replace("'","\"")
     my_req_json = json.loads(my_req_json_string)
-    eth_balance = float(my_req_json['result'])/10**18
-    return eth_balance
+    eth_balance = str(float(my_req_json['result'])/10**18)
+    message_balance = [
+	    {
+            "fallback": "Required plain-text summary of the attachment.",
+            "color": "#336b87",
+            "fields": [
+                {
+                    "title": "ETH Address:\t"+address,
+                    "value": eth_balance,
+                    "short": False
+                }
+            ]
+        }]
+    slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,attachments=message_balance)
+
+
+
+
+
 
 
 def init_warning(command, channel):
-    init_response = "Please make sure this is a Private channel!\n Your info would not be safe or secure if you make it public."
-    slack_client.api_call("chat.postMessage", channel=channel,
-                          text=init_response, as_user=True)
-
-def test_format(command, channel):
-    myTEXT = "*bold* `code` _italic_ ~strike~"
-    slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text=myTEXT)
-    message_intro_and_warning_tt = [
-        {
+	message_warning = [
+	    {
             "fallback": "Required plain-text summary of the attachment.",
             "color": "#cb1126",
+            "fields": [
+                {
+                    "title": "Please make sure this is a Private Channel",
+                    "value": "Your info would not be safe or secure if you make it public.\n All the history of this channel would be open to ALL members within this channel.\n **RCT group would not keep your data.**",
+                    "short": False
+                }
+            ]
+        }
+	]
+	slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,attachments=message_warning)
+	return 0
+
+def intro_RCT_BOT(command, channel):
+    message_intro = [
+        {
+            "fallback": "Required plain-text summary of the attachment.",
+            "color": "#333333",
             "pretext": "\n",
             "author_name": "RCT Developer Group",
             "author_link": "https://github.com/Reference-And-Certify-Token",
             "author_icon": "https://github.com/Reference-And-Certify-Token/RCT.artwork/blob/master/icon/icon_no_background.png",
             "title": "Reference & Certify Token",
             "title_link": "www.rctoken.com",
-            "text": "Value your work quickly and precisely",
+            "text": "Basic Commands:",
             "fields": [
                 {
-                    "title": "-ETH address-:Get Balance of ETH address",
-                    "value": "Eg. '-ETH address- 0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae' (without single quote)",
+                    "title": "-ETHaddr-:Get Balance of ETH address",
+                    "value": "Eg. '-0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae-' (no single quote, no other characters)",
                     "short": False
                 },
                 {
-                    "title": "-MyAddr-",
-                    "value": "Get Balance of ETH address",
+                    "title": "-MyAddr-: Get Balance of RCT address",
+                    "value": "Eg. '-MyAddr- 0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae' (without single quote)",
+                    "short": False
+                },
+                {
+                    "title": "-vcode-: Verification Code",
+                    "value": "Eg. '-vcode- 224134' (without single quote)",
                     "short": False
                 }
             ],
@@ -152,14 +193,23 @@ def test_format(command, channel):
             "ts": time.time()
         }
     ]
+    slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,attachments=message_intro)
 
-    slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text=myTEXT,attachments=message_intro_and_warning_tt)
+
+
+
+
+
+
+
+
 
 
 
 def handle_command(command, channel):
     init_warning(command, channel)
-    test_format(command, channel)
+    intro_RCT_BOT(command, channel)
+    get_ETH_balance("0x900d0881A2E85A8E4076412AD1CeFbE2D39c566c")
     # response = "Not sure what you mean. Use the *" + CHECK_ETH_Balance_COMMAND + \
     #            "* command with numbers, delimited by spaces."
     # if command.startswith(CHECK_ETH_Balance_COMMAND):

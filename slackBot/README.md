@@ -9,8 +9,9 @@
 - Install
 - Find your bot profile
 - Add env variable
-- Scripts
     - `printbotid.py`
+    - OR make env var permanent
+- Scripts
     - `myRCT_bot.py`
 
 <!-- /MarkdownTOC -->
@@ -43,7 +44,11 @@ sudo pip install slackclient
 export SLACK_BOT_TOKEN='your slack token'
 ```
 
-## Scripts
+Or run `addSlackToken.sh` under `~/.slackBot`
+
+
+
+
 
 ### `printbotid.py`
 
@@ -59,6 +64,19 @@ Then
 export BOT_ID=**************
 ```
 
+
+
+
+
+### OR make env var permanent
+
+```bash
+vi ~/.bash_proflle
+
+```
+
+
+## Scripts
 
 ### `myRCT_bot.py`
 
