@@ -32,7 +32,7 @@ slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
 
 
-#--------------Message Info----------------------------------
+#--------------Message Attachment example----------------------------------
 
 
 
@@ -56,36 +56,36 @@ slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
 
 
-message_intro_and_warning = [
-        {
-            "fallback": "Required plain-text summary of the attachment.",
-            "color": "#cb1126",
-            "pretext": "\n",
-            "author_name": "RCT Developer Group",
-            "author_link": "https://github.com/Reference-And-Certify-Token",
-            "author_icon": "https://github.com/Reference-And-Certify-Token/RCT.artwork/blob/master/icon/icon_no_background.png",
-            "title": "Reference & Certify Token",
-            "title_link": "www.rctoken.com",
-            "text": "Value your work quickly and precisely",
-            "fields": [
-                {
-                    "title": "-ETH address-",
-                    "value": "Get Balance of ETH address",
-                    "short": False
-                },
-                {
-                    "title": "-ETH address-",
-                    "value": "Get Balance of ETH address",
-                    "short": False
-                }
-            ],
-            # "image_url": "http://my-website.com/path/to/image.jpg",
-            # "thumb_url": "http://example.com/path/to/thumb.png",
-            "footer": "foundation@rctoken.com",
-            # "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
-            # "ts": 123456789
-        }
-]
+# message_intro_and_warning = [
+#         {
+#             "fallback": "Required plain-text summary of the attachment.",
+#             "color": "#cb1126",
+#             "pretext": "\n",
+#             "author_name": "RCT Developer Group",
+#             "author_link": "https://github.com/Reference-And-Certify-Token",
+#             "author_icon": "https://github.com/Reference-And-Certify-Token/RCT.artwork/blob/master/icon/icon_no_background.png",
+#             "title": "Reference & Certify Token",
+#             "title_link": "www.rctoken.com",
+#             "text": "Value your work quickly and precisely",
+#             "fields": [
+#                 {
+#                     "title": "-ETH address-",
+#                     "value": "Get Balance of ETH address",
+#                     "short": False
+#                 },
+#                 {
+#                     "title": "-ETH address-",
+#                     "value": "Get Balance of ETH address",
+#                     "short": False
+#                 }
+#             ],
+#             # "image_url": "http://my-website.com/path/to/image.jpg",
+#             # "thumb_url": "http://example.com/path/to/thumb.png",
+#             "footer": "foundation@rctoken.com",
+#             # "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
+#             # "ts": time.time()
+#         }
+# ]
 
 
 
@@ -125,7 +125,35 @@ def init_warning(command, channel):
 def test_format(command, channel):
     myTEXT = "*bold* `code` _italic_ ~strike~"
     slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text=myTEXT)
-    slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text=myTEXT,attachments=message_intro_and_warning)
+    message_intro_and_warning_tt = [
+        {
+            "fallback": "Required plain-text summary of the attachment.",
+            "color": "#cb1126",
+            "pretext": "\n",
+            "author_name": "RCT Developer Group",
+            "author_link": "https://github.com/Reference-And-Certify-Token",
+            "author_icon": "https://github.com/Reference-And-Certify-Token/RCT.artwork/blob/master/icon/icon_no_background.png",
+            "title": "Reference & Certify Token",
+            "title_link": "www.rctoken.com",
+            "text": "Value your work quickly and precisely",
+            "fields": [
+                {
+                    "title": "-ETH address-:Get Balance of ETH address",
+                    "value": "Eg. '-ETH address- 0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae' (without single quote)",
+                    "short": False
+                },
+                {
+                    "title": "-MyAddr-",
+                    "value": "Get Balance of ETH address",
+                    "short": False
+                }
+            ],
+            "footer": "foundation@rctoken.com",
+            "ts": time.time()
+        }
+    ]
+
+    slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text=myTEXT,attachments=message_intro_and_warning_tt)
 
 
 
