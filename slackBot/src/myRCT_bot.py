@@ -8,6 +8,8 @@ import json
 import re
 from slackclient import SlackClient
 
+
+
 #------------------------------------------------------------
 
 
@@ -144,9 +146,12 @@ def get_ETH_add_list(command,channel):
     myETH_list = re.findall(r'-0.{41}-',command)
     if len(myETH_list)>10:
         slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text="*Error:\tToo many accounts*")
+    elif len(myETH_list)==0:
+        slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text="*Error:\tNo valid accounts*")
     else:
         for i in myETH_list:
             get_ETH_balance(i[1:-1],channel)
+    return 0
 
 
 
@@ -182,9 +187,9 @@ def intro_RCT_BOT(command, channel):
             "text": "Basic Commands:",
             "fields": [
                 {
-                    "title": "-ETHaddr-:Get Balance of ETH address",
+                    "title": "`-ETHaddr-`:Get Balance of ETH address",
                     "value": "Eg. '-0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae-' (no single quote, no other characters)",
-                    "short": False
+                    "short": False,
                 },
                 {
                     "title": "-MyAddr-: Get Balance of RCT address",
@@ -207,7 +212,19 @@ def intro_RCT_BOT(command, channel):
 
 
 
-
+def generateNEW_ETH(command,channel):
+    my_new_eth_address = os.popen('python3 genETHaddress.py').read().strip('\n')
+    myTEXT = '\t\t*`'+my_new_eth_address+'`*'
+    message_new_address = [
+        {
+            "color": "#ffc0cb",
+            "title": "New Address",
+            "text": myTEXT,
+            "mrkdwn_in": ["text"],
+            "ts": time.time()
+        }
+    ]
+    slack_client.api_call("chat.postMessage",as_user=True,channel=channel,attachments=message_new_address)
 
 
 
@@ -218,6 +235,7 @@ def handle_command(command, channel):
     init_warning(command, channel)
     intro_RCT_BOT(command, channel)
     get_ETH_add_list(command,channel)
+    generateNEW_ETH(command,channel)
     # response = "Not sure what you mean. Use the *" + CHECK_ETH_Balance_COMMAND + \
     #            "* command with numbers, delimited by spaces."
     # if command.startswith(CHECK_ETH_Balance_COMMAND):
