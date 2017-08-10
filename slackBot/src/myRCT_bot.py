@@ -2,10 +2,11 @@
 
 import os
 import time
-from slackclient import SlackClient
 import random
 import urllib2
 import json
+import re
+from slackclient import SlackClient
 
 #------------------------------------------------------------
 
@@ -111,7 +112,7 @@ slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 #------------------------------------------------------------
 
 
-def get_ETH_balance(address):
+def get_ETH_balance(address,channel):
     # test_response = urllib2.urlopen('https://api.etherscan.io/api?module=account&action=balance&address=0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a&tag=latest&apikey=YourApiKeyToken')
     # sample accounts:
     #		0xddBd2B932c763bA5b1b7AE3B362eac3e8d40121A
@@ -139,6 +140,13 @@ def get_ETH_balance(address):
 
 
 
+def get_ETH_add_list(command,channel):
+    myETH_list = re.findall(r'-0.{41}-',command)
+    if len(myETH_list)>10:
+        slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text="**Error:\tToo many accounts**")
+    else:
+        for i in myETH_list:
+            get_ETH_balance(i[1:-1],channel)
 
 
 
@@ -209,7 +217,7 @@ def intro_RCT_BOT(command, channel):
 def handle_command(command, channel):
     init_warning(command, channel)
     intro_RCT_BOT(command, channel)
-    get_ETH_balance("0x900d0881A2E85A8E4076412AD1CeFbE2D39c566c")
+    get_ETH_add_list(command,channel)
     # response = "Not sure what you mean. Use the *" + CHECK_ETH_Balance_COMMAND + \
     #            "* command with numbers, delimited by spaces."
     # if command.startswith(CHECK_ETH_Balance_COMMAND):
