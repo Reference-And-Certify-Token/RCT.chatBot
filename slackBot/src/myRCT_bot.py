@@ -103,21 +103,44 @@ def get_ETH_add_list(command,channel):
 
 
 def init_warning(command, channel):
-	message_warning = [
+    slack_client.api_call("chat.postMessage",text='Actually, I do not understand your command... \n But I can still help you if you want...',as_user=True,channel=channel,mrkdown=True)
+    message_warning = [
 	    {
             "fallback": "Required plain-text summary of the attachment.",
             "color": "#cb1126",
             "fields": [
                 {
                     "title": "Please make sure this is a Private Channel",
-                    "value": "Your info would not be safe or secure if you make it public.\n All the history of this channel would be open to ALL members within this channel.\n **RCT group would not keep your data.**",
+                    "value": "Your info would not be safe or secure if you make it public.\n All the history of this channel would be open to ALL members within this channel.",
                     "short": False
                 }
             ]
         }
 	]
-	slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,attachments=message_warning)
-	return 0
+    slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,attachments=message_warning)
+    return 0
+
+
+
+
+def intro_join_RCT(command, channel):
+    myTEXT = 'just type your email address to me, e.g. |:example@email.com:|'+'\n'
+    myTEXT = myTEXT + 'After verifying your email address, you can use ETH/BTC/XEM accounts to join us!'
+    message_howJoin = [
+        {
+            "color": "#FD4D00",
+            "title": "If you want to get RCT, ...",
+            "text": myTEXT,
+            "mrkdwn_in": ["text"],
+            "ts": time.time()
+        }
+    ]
+    slack_client.api_call("chat.postMessage",as_user=True,channel=channel,attachments=message_howJoin)
+
+
+
+
+
 
 def intro_RCT_BOT(command, channel):
     message_intro = [
@@ -133,23 +156,23 @@ def intro_RCT_BOT(command, channel):
             "text": "Basic Commands:",
             "fields": [
                 {
-                    "title": "`-ETHaddr-`:Get Balance of ETH address",
-                    "value": "Eg. '-0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae-' (no single quote, no other characters)",
-                    "short": False,
-                },
-                {
-                    "title": "-MyAddr-: Get Balance of RCT address",
-                    "value": "Eg. '--0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae--' (Under processing)",
+                    "title": "|:name@email.address:| \t: Join RCT project by getting our token!",
+                    "value": "Eg. When you type 'this is my email |:sam@email.com:|' or the like, you are gonna to get RCT with your ETH/BTC/XEM account.",
                     "short": False
                 },
                 {
-                    "title": "-vcode-: Verification Code",
-                    "value": "Eg. '-vcode- 224134' (without single quote)",
+                    "title": "ETHpromotion: Get RCT by using ETH account.",
+                    "value": "Eg. 'I want to join RCT by using ETHpromotion.' (without single quote)",
                     "short": False
                 },
                 {
-                    "title": "|:name@email.address:| \t: Input your email adress",
-                    "value": "Eg. 'this is my email |:sam@email.com:|' (without single quote)",
+                    "title": "BTCpromotion: Get RCT by using BTC account. \t: Input your email adress",
+                    "value": "Eg. 'I want to join RCT by using BTCpromotion' (without single quote)",
+                    "short": False
+                },
+                {
+                    "title": "XEMpromotion: Get RCT by using NEM account. \t: Input your email adress",
+                    "value": "Eg. 'I want to join RCT by using XEMpromotion' (without single quote)",
                     "short": False
                 }
             ],
