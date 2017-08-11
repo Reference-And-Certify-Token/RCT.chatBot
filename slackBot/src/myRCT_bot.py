@@ -292,9 +292,16 @@ def processBusinessCode(command,channel,dataItem):
         conn.execute(query_delete_value)
         conn.commit()
     else:
+        # -- if dataItem[1] (veriCode) in DB2, then check business plan 
+        #                         -- check if bussiness code in command
+        #                                   -- if yes, insert business plan value
+        #                                   -- if no, post message, deny and delete DB2 the row with veriCode
+        #                         -- delete DB1 with vericode+channel
+        # -- if dataItem[1] (veriCode) not in DB2, then insert channel, email,veriCode into DB2, generate 3 codes for 3 plans, email them to the user
+        # (not finished)
         emailCode = code_generator()
         # query_update_value = "UPDATE channelTable SET veriCode"
-        myTEXT = "Great! ٩( ᐖ )و    \n We are processing your business. You will receive one email in next few minutes."
+        myTEXT = "Great! ٩( ᐖ )و  ∠( ᐛ 」∠)__  \n We are processing your business. You will receive one email in next few minutes."
         myTEXT = myTEXT + '\n *Please type the verification `code` in the email.*'
         myTEXT = myTEXT + "\n If not, please re-enter your email address, e.g. |:example@email.com:| ."
         slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text=myTEXT)

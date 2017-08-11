@@ -64,9 +64,6 @@ def verifyBusiness(command, channel):
 		else:
 			print "======>input email"
 	else:
-		# ------ send email with 3 codes
-		## - query from database 1 to get email and channel
-		## - insert channel , email, 3 codes, bussiness plan into database2
 		print "!!!!!!\t\t",command,channel,decision
 		processBusinessCode(command,channel,decision)
 		query_delete_value = "DELETE FROM channelTable where channelId = "+repr(str(channel))+";"
