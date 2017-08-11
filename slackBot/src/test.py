@@ -31,10 +31,21 @@ def readEmailTemplate():
 	return emailContent
 
 def customizeEmail(html_string):
-	newLine_PK_addr = '*****'+'\tPK\t'+'*****'
-	find_location = '\*\*\*\*\*\*\*\*\*\*\*\*'
-	newHTML = re.sub(find_location,newLine_PK_addr,html_string)
-	return newHTML
+	#------ replace PK
+	newLine_PK = '*****'+'\t' + 'PK' + '\t'+'*****'
+	find_PK_location = '\*\*\*\*\*\*\*\*\*\*\*\*'
+	html_string = re.sub(find_PK_location,newLine_PK,html_string)
+	#------ replace address
+	newLine_addr = '-----'+'\t' + 'addr' + '\t'+'-----'
+	find_addr_location = '\-\-\-\-\-\-\-\-\-\-'
+	html_string = re.sub(find_addr_location,newLine_addr,html_string)
+	#------ return new html
+	return html_string
+
+
+
+def email_PK_addr_to_user():
+	pass
 
 
 if __name__ == '__main__':
