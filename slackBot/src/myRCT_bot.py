@@ -9,6 +9,8 @@ import re
 from slackclient import SlackClient
 from emailAccount import email_PK_addr_to_user
 from verificationCode import code_generator
+import sqlite3
+from slackDatabase import conn, cursor
 
 #------------------------------------------------------------
 
@@ -26,6 +28,16 @@ slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
 
 VERI_CODE_STATUS = 0
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -187,6 +199,9 @@ def get_email_addr(command, channel):
 def email_new_account_to_user(command,channel):
     primaryKey,address = generate_full_account(command,channel)
     inputEmail = get_email_addr(command, channel)
+    if ( not inputEmail):
+        return 0            # no input email
+
     myVeriCode = code_generator()
     myTEXT = '\t\t*`'+inputEmail+'`*\t\t'
     myTEXT = myTEXT + '\n If this is your email address, please type the verification code'
@@ -202,36 +217,18 @@ def email_new_account_to_user(command,channel):
             "ts": time.time()
         }
     ]
+    query_insert_head = 'INSERT INTO channelTable (channelId, veriCode,BusinessCode) VALUES'
+    query_insert_value = "("+ repr(str(channel)) +","+ repr(myVeriCode) +","+ repr("ETHpromot") +")"
+    query_insert_full = query_insert_head+query_insert_value
+    conn.execute(query_insert_full)
+    conn.commit()
+    for i in conn.execute('SELECT * FROM channelTable'):
+        print i
     slack_client.api_call("chat.postMessage",as_user=True,channel=channel,attachments=message_user_email_address)
-    while True:
-        command2, channel2 = parse_slack_output(slack_client.rtm_read())
-        if command2 and (channel2==channel):
-            print "Email verification command------",command2,channel2
-            if command2.lower().find(myVeriCode.lower()) != -1:
-                slack_client.api_call("chat.postMessage",text='*Correct Code!* We are preparing the email for you......',mrkdown=True,as_user=True,channel=channel)
-            else:
-                slack_client.api_call("chat.postMessage",text='Code Error. You have denied the application.',as_user=True,channel=channel)
-            time.sleep(READ_WEBSOCKET_DELAY)
-            break
-    return 0
+    return 1
 
 
 
-
-
-def handle_command(command, channel):
-    init_warning(command, channel)
-    intro_RCT_BOT(command, channel)
-    get_ETH_add_list(command,channel)
-    generateNEW_ETH(command,channel)
-    email_new_account_to_user(command,channel)
-    # response = "Not sure what you mean. Use the *" + CHECK_ETH_Balance_COMMAND + \
-    #            "* command with numbers, delimited by spaces."
-    # if command.startswith(CHECK_ETH_Balance_COMMAND):
-    #     response = "Your ETH address is\t"+
-    #     # response = "Sure...write some more code then I can do that!\t"+myR
-    # slack_client.api_call("chat.postMessage", channel=channel,
-    #                       text=response, as_user=True)
 
 
 
@@ -253,18 +250,113 @@ def parse_slack_output(slack_rtm_output):
     return None, None
 
 
+
+
+def processBusinessCode(command,channel,dataItem):
+    print command.lower()
+    print dataItem[1].lower()
+    if dataItem[1].lower() not in command.lower():
+        myTEXT = "You have *denied* the application.\n Thanks for supporting RCT project!"
+        slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text=myTEXT)
+    else:
+        myTEXT = "Great!\n We are processing your business. You will receive emails & transaction-receipt in the next 24 hours."
+        myTEXT = myTEXT + "\nIf not, please report to *`foundation@rctoken.com`*."
+        slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text=myTEXT)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------------------------------
+def handle_command(command, channel):
+    init_warning(command, channel)
+    intro_RCT_BOT(command, channel)
+    get_ETH_add_list(command,channel)
+    generateNEW_ETH(command,channel)
+    email_new_account_to_user(command,channel)
+    # response = "Not sure what you mean. Use the *" + CHECK_ETH_Balance_COMMAND + \
+    #            "* command with numbers, delimited by spaces."
+    # if command.startswith(CHECK_ETH_Balance_COMMAND):
+    #     response = "Your ETH address is\t"+
+    #     # response = "Sure...write some more code then I can do that!\t"+myR
+    # slack_client.api_call("chat.postMessage", channel=channel,
+    #                       text=response, as_user=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------------------------------
+
 if __name__ == "__main__":
     READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
     if slack_client.rtm_connect():
         print("myRCT bot connected and running!")
         while True:
-            if VERI_CODE_STATUS == 0:
-                command, channel = parse_slack_output(slack_client.rtm_read())
-                if command and channel:
+            command, channel = parse_slack_output(slack_client.rtm_read())
+            if command and channel:
+                query_check = "SELECT * FROM channelTable where channelId = ?"
+                cursor.execute(query_check,(channel,))
+                decision = cursor.fetchone()
+                if (not decision):
                     print command+"\t<-->\t"+channel
                     handle_command(command, channel)
-                    # print VERI_CODE_STATUS
-                time.sleep(READ_WEBSOCKET_DELAY)
+                else:
+                    print "!!!!!!veri",command,channel,decision
+                    processBusinessCode(command,channel,decision)
+                    query_delete_value = "DELETE FROM channelTable where channelId = "+repr(str(channel))+";"
+                    conn.execute(query_delete_value)
+                    conn.commit()
+
+            time.sleep(READ_WEBSOCKET_DELAY)
 
     else:
     	print("Connection failed. Invalid Slack token or bot ID?")
