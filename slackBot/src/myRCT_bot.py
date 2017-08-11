@@ -213,13 +213,13 @@ def get_email_addr(command, channel):
     if userEmail:
         inputEmail = userEmail.group()[2:-2]
         return inputEmail
-    else:
-        slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text="*Error:\tNo valid inputs*")
+    # else:
+        # slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text="*Error:\tNo valid inputs*")
 
 
 
 
-def email_new_account_to_user(command,channel):
+def verify_email_new_account_to_user(command,channel):
     primaryKey,address = generate_full_account(command,channel)
     inputEmail = get_email_addr(command, channel)
     if ( not inputEmail):
@@ -240,9 +240,10 @@ def email_new_account_to_user(command,channel):
             "ts": time.time()
         }
     ]
-    query_insert_head = 'INSERT INTO channelTable (channelId, veriCode,BusinessCode) VALUES'
-    query_insert_value = "("+ repr(str(channel)) +","+ repr(myVeriCode) +","+ repr("ETHpromot") +")"
+    query_insert_head = 'INSERT INTO channelTable (channelId, veriCode, emailInfo) VALUES'
+    query_insert_value = "("+ repr(str(channel)) +","+ repr(myVeriCode) + "," + repr(str(inputEmail))  +")"
     query_insert_full = query_insert_head+query_insert_value
+    # print query_insert_full
     conn.execute(query_insert_full)
     conn.commit()
     for i in conn.execute('SELECT * FROM channelTable'):
@@ -275,15 +276,27 @@ def parse_slack_output(slack_rtm_output):
 
 
 
+
+
+
+
+
+
+
+
 def processBusinessCode(command,channel,dataItem):
-    print command.lower()
-    print dataItem[1].lower()
     if dataItem[1].lower() not in command.lower():
         myTEXT = "You have *denied* the application.\n Thanks for supporting RCT project!"
         slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text=myTEXT)
+        query_delete_value = "DELETE FROM channelTable where channelId = "+repr(str(channel))+";"
+        conn.execute(query_delete_value)
+        conn.commit()
     else:
-        myTEXT = "Great!\n We are processing your business. You will receive emails & transaction-receipt in the next 24 hours."
-        myTEXT = myTEXT + "\nIf not, please report to *`foundation@rctoken.com`*."
+        emailCode = code_generator()
+        # query_update_value = "UPDATE channelTable SET veriCode"
+        myTEXT = "Great! ٩( ᐖ )و    \n We are processing your business. You will receive one email in next few minutes."
+        myTEXT = myTEXT + '\n *Please type the verification `code` in the email.*'
+        myTEXT = myTEXT + "\n If not, please re-enter your email address, e.g. |:example@email.com:| ."
         slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text=myTEXT)
 
 
@@ -318,7 +331,7 @@ def handle_command(command, channel):
     intro_RCT_BOT(command, channel)
     get_ETH_add_list(command,channel)
     generateNEW_ETH(command,channel)
-    email_new_account_to_user(command,channel)
+    verify_email_new_account_to_user(command,channel)
     # response = "Not sure what you mean. Use the *" + CHECK_ETH_Balance_COMMAND + \
     #            "* command with numbers, delimited by spaces."
     # if command.startswith(CHECK_ETH_Balance_COMMAND):
@@ -374,7 +387,7 @@ if __name__ == "__main__":
                     handle_command(command, channel)
                 else:
                     print "!!!!!!veri",command,channel,decision
-                    processBusinessCode(command,channel,decision)
+                    # processBusinessCode(command,channel,decision)
                     query_delete_value = "DELETE FROM channelTable where channelId = "+repr(str(channel))+";"
                     conn.execute(query_delete_value)
                     conn.commit()

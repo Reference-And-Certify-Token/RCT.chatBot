@@ -14,11 +14,11 @@ from slackclient import SlackClient
 from emailAccount import email_PK_addr_to_user
 from verificationCode import code_generator
 import sqlite3
-from slackDatabase import conn, cursor
+from slackDatabase import conn, cursor,conn2, cursor2
 
 #------------------------------------------------------------
 
-from myRCT_bot import parse_slack_output, processBusinessCode, init_warning, intro_RCT_BOT, intro_join_RCT
+from myRCT_bot import parse_slack_output, processBusinessCode, init_warning, intro_RCT_BOT, intro_join_RCT, verify_email_new_account_to_user
 
 
 #------------------------------------------------------------
@@ -49,20 +49,25 @@ slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
 
 def verifyBusiness(command, channel):
-	"""Check whether user has applied business with code 
-				if yes, then execute the business.
-				if not, then pass normal intro"""
+	#-- verify slack message code
 	query_check = "SELECT * FROM channelTable where channelId = ?"
 	cursor.execute(query_check,(channel,))
 	decision = cursor.fetchone()
+	#-- verify email message code
 	if (not decision):
 		print command+"\t<-->\t"+channel
-		init_warning(command, channel)
-		intro_join_RCT(command, channel)
-		intro_RCT_BOT(command, channel)
+		email_yes_or_no = verify_email_new_account_to_user(command,channel)
+		if email_yes_or_no != 1:
+			init_warning(command, channel)
+			intro_join_RCT(command, channel)
+			intro_RCT_BOT(command, channel)
+		else:
+			print "======>input email"
 	else:
-		# ------ process business
-		print "!!!!!!veri",command,channel,decision
+		# ------ send email with 3 codes
+		## - query from database 1 to get email and channel
+		## - insert channel , email, 3 codes, bussiness plan into database2
+		print "!!!!!!\t\t",command,channel,decision
 		processBusinessCode(command,channel,decision)
 		query_delete_value = "DELETE FROM channelTable where channelId = "+repr(str(channel))+";"
 		conn.execute(query_delete_value)
