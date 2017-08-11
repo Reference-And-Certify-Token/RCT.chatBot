@@ -8,7 +8,7 @@ import json
 import re
 from slackclient import SlackClient
 from emailAccount import email_PK_addr_to_user
-
+from verificationCode import code_generator
 
 #------------------------------------------------------------
 
@@ -25,7 +25,7 @@ slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
 
 
-
+VERI_CODE_STATUS = 0
 
 
 
@@ -183,45 +183,40 @@ def get_email_addr(command, channel):
 
 
 
-# def message_act(command,channel):
-#     menu_options = {
-#         "options": [
-#             {
-#                 "text": "Chess",
-#                 "value": "chess"
-#             },
-#             {
-#                 "text": "Global Thermonuclear War",
-#                 "value": "war"
-#             }
-#         ]
-#     }
-#     response = slack_client.api_call(
-#       "chat.update",
-#       channel=channel,
-#       ts=time.time(),
-#       text="this is message_text",
-#       attachments=menu_options
-#     )
-#     print response
-#     pass
-
 
 def email_new_account_to_user(command,channel):
     primaryKey,address = generate_full_account(command,channel)
     inputEmail = get_email_addr(command, channel)
+    myVeriCode = code_generator()
     myTEXT = '\t\t*`'+inputEmail+'`*\t\t'
+    myTEXT = myTEXT + '\n If this is your email address, please type the verification code'
+    myTEXT = myTEXT + '*`' + myVeriCode +'`*'
+    myTEXT = myTEXT + '\n'
+    myTEXT = myTEXT + 'Or, you will deny this application.'
     message_user_email_address = [
         {
             "color": "#009cdc",
-            "title": "Your input Email Address",
+            "title": "Your email address is",
             "text": myTEXT,
             "mrkdwn_in": ["text"],
             "ts": time.time()
         }
     ]
     slack_client.api_call("chat.postMessage",as_user=True,channel=channel,attachments=message_user_email_address)
-    # message_act(command,channel)
+    while True:
+        command2, channel2 = parse_slack_output(slack_client.rtm_read())
+        if command2 and (channel2==channel):
+            print "Email verification command------",command2,channel2
+            if command2.lower().find(myVeriCode.lower()) != -1:
+                slack_client.api_call("chat.postMessage",text='*Correct Code!* We are preparing the email for you......',mrkdown=True,as_user=True,channel=channel)
+            else:
+                slack_client.api_call("chat.postMessage",text='Code Error. You have denied the application.',as_user=True,channel=channel)
+            time.sleep(READ_WEBSOCKET_DELAY)
+            break
+    return 0
+
+
+
 
 
 def handle_command(command, channel):
@@ -263,11 +258,14 @@ if __name__ == "__main__":
     if slack_client.rtm_connect():
         print("myRCT bot connected and running!")
         while True:
-            command, channel = parse_slack_output(slack_client.rtm_read())
-            if command and channel:
-            	print command+"\t<-->\t"+channel
-                handle_command(command, channel)
-            time.sleep(READ_WEBSOCKET_DELAY)
+            if VERI_CODE_STATUS == 0:
+                command, channel = parse_slack_output(slack_client.rtm_read())
+                if command and channel:
+                    print command+"\t<-->\t"+channel
+                    handle_command(command, channel)
+                    # print VERI_CODE_STATUS
+                time.sleep(READ_WEBSOCKET_DELAY)
+
     else:
     	print("Connection failed. Invalid Slack token or bot ID?")
 
