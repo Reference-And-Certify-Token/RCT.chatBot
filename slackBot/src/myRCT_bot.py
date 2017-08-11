@@ -7,11 +7,10 @@ import urllib2
 import json
 import re
 from slackclient import SlackClient
-
+from emailAccount import email_PK_addr_to_user
 
 
 #------------------------------------------------------------
-
 
 BOT_ID = os.environ.get('BOT_ID')
 
@@ -128,12 +127,17 @@ def intro_RCT_BOT(command, channel):
                 },
                 {
                     "title": "-MyAddr-: Get Balance of RCT address",
-                    "value": "Eg. '-MyAddr- 0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae' (without single quote)",
+                    "value": "Eg. '--0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae--' (Under processing)",
                     "short": False
                 },
                 {
                     "title": "-vcode-: Verification Code",
                     "value": "Eg. '-vcode- 224134' (without single quote)",
+                    "short": False
+                },
+                {
+                    "title": "|:name@email.address:| \t: Input your email adress",
+                    "value": "Eg. 'this is my email |:sam@email.com:|' (without single quote)",
                     "short": False
                 }
             ],
@@ -162,8 +166,62 @@ def generateNEW_ETH(command,channel):
     slack_client.api_call("chat.postMessage",as_user=True,channel=channel,attachments=message_new_address)
 
 
+def generate_full_account(command,channel):
+    #------ get primary key & address
+    my_new_eth_account = os.popen('python3 genETHaddress.py two').read().split('\n')
+    primaryKey = my_new_eth_account[0]
+    address = my_new_eth_account[1]
+    return primaryKey,address
+
+def get_email_addr(command, channel):
+    userEmail = re.search(r'\|\:.+\@.+\:\|',command)
+    if userEmail:
+        inputEmail = userEmail.group()[2:-2]
+        return inputEmail
+    else:
+        slack_client.api_call("chat.postMessage",as_user=True,channel=channel,mrkdown=True,text="*Error:\tNo valid inputs*")
 
 
+
+# def message_act(command,channel):
+#     menu_options = {
+#         "options": [
+#             {
+#                 "text": "Chess",
+#                 "value": "chess"
+#             },
+#             {
+#                 "text": "Global Thermonuclear War",
+#                 "value": "war"
+#             }
+#         ]
+#     }
+#     response = slack_client.api_call(
+#       "chat.update",
+#       channel=channel,
+#       ts=time.time(),
+#       text="this is message_text",
+#       attachments=menu_options
+#     )
+#     print response
+#     pass
+
+
+def email_new_account_to_user(command,channel):
+    primaryKey,address = generate_full_account(command,channel)
+    inputEmail = get_email_addr(command, channel)
+    myTEXT = '\t\t*`'+inputEmail+'`*\t\t'
+    message_user_email_address = [
+        {
+            "color": "#009cdc",
+            "title": "Your input Email Address",
+            "text": myTEXT,
+            "mrkdwn_in": ["text"],
+            "ts": time.time()
+        }
+    ]
+    slack_client.api_call("chat.postMessage",as_user=True,channel=channel,attachments=message_user_email_address)
+    # message_act(command,channel)
 
 
 def handle_command(command, channel):
@@ -171,6 +229,7 @@ def handle_command(command, channel):
     intro_RCT_BOT(command, channel)
     get_ETH_add_list(command,channel)
     generateNEW_ETH(command,channel)
+    email_new_account_to_user(command,channel)
     # response = "Not sure what you mean. Use the *" + CHECK_ETH_Balance_COMMAND + \
     #            "* command with numbers, delimited by spaces."
     # if command.startswith(CHECK_ETH_Balance_COMMAND):

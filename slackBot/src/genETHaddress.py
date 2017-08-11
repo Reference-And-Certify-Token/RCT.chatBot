@@ -17,7 +17,7 @@ import sys
 
 
 
-def generateNewAddQR():
+def generateNewAddQR(opt):
 	keccak = sha3.keccak_256()
 	private = SigningKey.generate(curve=SECP256k1)
 	public = private.get_verifying_key().to_string()
@@ -33,7 +33,11 @@ def generateNewAddQR():
 	with open(myFilePath,'a') as out:
 		out.write(myAddingInfo)
 
-
+	if opt==1:
+		print(address)
+	if opt==2:
+		print(private.to_string().hex())
+		print(address)
 
 
 	#------ generate QR code
@@ -48,9 +52,18 @@ def generateNewAddQR():
 	# qr.make(fit=True)
 	# img = qr.make_image(fill_color="white", back_color="blue")
 	# img.save('ethAddFig/'+address+'.png')
-	print(address)
+	# print(address)
 
 
 if __name__ == '__main__':
-	# argvList=str(sys.argv)
-	generateNewAddQR()
+	opt=0
+	argvList=sys.argv
+	# print(len(argvList))
+	if len(argvList) == 1:
+		opt=1
+	else:
+		opt=2
+
+	generateNewAddQR(opt)
+	opt=0
+
