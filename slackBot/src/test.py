@@ -2,57 +2,77 @@
 
 
 
-
-import sqlite3
-from verificationCode import code_generator
-
-conn = sqlite3.connect('/home/yaojin/.SlackFile/channel.db')
+# -*- coding: utf-8 -*-
 
 
-cursor = conn.cursor()
-
-# cursor.execute('create table channelTable (channelId varchar(20) primary key, veriCode varchar(20))')
-
-
-my_channel = 'awddwd'
-my_veriCode = 'sfdssd'
-
-executeValue = '('+repr(code_generator())+','+repr(code_generator())+')'
-executeValue = '('+repr(code_generator())+','+repr(code_generator())+')'
-executeHead = 'INSERT INTO channelTable (channelId, veriCode) VALUES'
-executeFull = executeHead + executeValue
-print executeFull
-
-conn.execute(executeFull)
-conn.commit()
-
-#------------------ select certain line
-
-selectByChannel = "SELECT veriCode FROM channelTable where channelId ='18OYX34X';"
-
-for i in conn.execute(selectByChannel):
-	print i[0]
+import os, sys
+import time
+import random
+import urllib2
+import json
+import re
+from slackclient import SlackClient
 
 
-#---------------- delete
+#------------------------------------------------------------
 
-deleteByChannelId = "DELETE FROM channelTable where channelId = 'AMI7NOLG';"
-conn.execute(deleteByChannelId)
-conn.commit()
+BOT_ID = os.environ.get('BOT_ID')
 
-
-for i in conn.execute('SELECT * FROM channelTable'):
-	print i
+# constants
+AT_BOT = "<@" + BOT_ID + ">"
+CHECK_ETH_Balance_COMMAND = "ETHaddress"
 
 
-print "-"*10
 
-#-------------------------------
+# instantiate Slack & Twilio clients
+slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
-checkLine = "SELECT veriCode FROM channelTable where channelId = ?"
-cursor.execute(checkLine,('N139A99B',))
-data = cursor.fetchone()
-print data[0]
+
+
+#------------------------------------------------------------
+
+
+# listen to these accounts and check condition 
+def test_generate_list_ETH_pk_addr(number):
+	eth_info_list = []
+	for i in xrange(number):
+		my_new_eth_address = os.popen('python3 genETHaddress.py pk').read().split('\n')
+		eth_info_list.append(my_new_eth_address[0:2])
+	# print eth_info_list
+	eth_info_list.append(['test','0x3de8c14C8e7A956f5cc4d82bEff749Ee65Fdc358'])
+	return eth_info_list
+
+
+if __name__ == '__main__':
+	eth_listen_wallet = test_generate_list_ETH_pk_addr(5)
+	READ_WEBSOCKET_DELAY = 1
+	if slack_client.rtm_connect():
+		print("I am listening......")
+		while True:
+			for i in eth_listen_wallet:
+				myAddress = i[1]
+				# print myAddress
+				myURL = 'https://api.etherscan.io/api?module=account&action=balance&address='+myAddress+'&tag=latest&apikey=YourApiKeyToken'
+				response = urllib2.urlopen(myURL)
+				myHtml = response.read()
+				my_req_json_string = myHtml.replace("'","\"")
+				my_req_json = json.loads(my_req_json_string)
+				eth_balance = str(float(my_req_json['result'])/10**18)
+				print i[1],eth_balance
+			break
+	else:
+		print("Connection failed. Invalid Slack token or bot ID?")
+
+
+
+
+
+
+
+
+
+
+
 
 
 
