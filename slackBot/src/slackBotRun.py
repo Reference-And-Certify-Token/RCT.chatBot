@@ -66,9 +66,9 @@ def verifyBusiness(command, channel):
 	else:
 		print "!!!!!!\t\t",command,channel,decision
 		processBusinessCode(command,channel,decision)
-		query_delete_value = "DELETE FROM channelTable where channelId = "+repr(str(channel))+";"
-		conn.execute(query_delete_value)
-		conn.commit()
+		# query_delete_value = "DELETE FROM channelTable where channelId = "+repr(str(channel))+";"
+		# conn.execute(query_delete_value)
+		# conn.commit()
 	pass
 
 

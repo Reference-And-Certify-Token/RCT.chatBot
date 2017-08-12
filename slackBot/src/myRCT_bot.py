@@ -10,7 +10,7 @@ from slackclient import SlackClient
 from emailAccount import email_PK_addr_to_user
 from verificationCode import code_generator
 import sqlite3
-from slackDatabase import conn, cursor
+from slackDatabase import conn, cursor,conn2, cursor2
 
 #------------------------------------------------------------
 
@@ -294,12 +294,54 @@ def processBusinessCode(command,channel,dataItem):
     else:
         # -- if dataItem[1] (veriCode) in DB2, then check business plan 
         #                         -- check if bussiness code in command
-        #                                   -- if yes, insert business plan value
+        #                                   -- if yes, insert business plan value, use other function to email info to user 
         #                                   -- if no, post message, deny and delete DB2 the row with veriCode
         #                         -- delete DB1 with vericode+channel
         # -- if dataItem[1] (veriCode) not in DB2, then insert channel, email,veriCode into DB2, generate 3 codes for 3 plans, email them to the user
         # (not finished)
-        emailCode = code_generator()
+        query_DB2_check = "SELECT * FROM businessTable WHERE veriCode = ?"
+        cursor2.execute(query_DB2_check,(dataItem[1],))
+        decision2 = cursor2.fetchone()
+        if decision2:
+            query2_select = "SELECT vCode1, vCode2, vCode3 FROM businessTable where veriCode = "+ repr(str(dataItem[1]))
+            for j in conn2.execute(query2_select):
+                codeList = j
+            tempTag = None
+            if  codeList[0].lower() in command.lower():
+                tempTag = "ETHpro"
+            elif codeList[1].lower() in command.lower():
+                tempTag = "BTCpro"
+            elif codeList[2].lower() in command.lower():
+                tempTag = "XEMpro"
+            else:
+                print "Alert no Service"
+                query2_delete = "DELETE FROM businessTable WHERE veriCode =  " + repr(str(dataItem[1]))
+                conn2.execute(query2_delete)
+                conn2.commit()
+            #---- update DB2
+            if tempTag:
+                query2_update = "UPDATE businessTable SET BusinessCode = " + repr(tempTag) + " WHERE veriCode = " + repr(str(dataItem[1]))
+                conn2.execute(query2_update)
+                conn2.commit()
+            #----- delete DB1
+            query_delete_value = "DELETE FROM channelTable where channelId = "+repr(str(channel))+";"
+            conn.execute(query_delete_value)
+            conn.commit()
+        else:
+            code1 = str(dataItem[1]) + code_generator()
+            code2 = str(dataItem[1]) + code_generator()
+            code3 = str(dataItem[1]) + code_generator()
+            print "------> Test:\t", code1, code2, code3
+            query_DB1_email_info = "SELECT emailInfo from channelTable where veriCode = " + repr(str(dataItem[1]))
+            for i in  conn.execute(query_DB1_email_info):
+                user_email = i[0]
+            query2_insert_head = 'INSERT INTO  businessTable (channelID, veriCode, emailInfo, vCode1, vCode2, vCode3) VALUES'
+            query2_insert_values = "("+ repr(str(channel)) +","+ repr(str(dataItem[1])) + "," + repr(str(user_email)) + "," + repr(code1) + "," + repr(code2) + "," + repr(code3) +")"
+            query2_insert_full = query2_insert_head + query2_insert_values
+            # print query2_insert_full
+            conn2.execute(query2_insert_full)
+            conn2.commit()
+            print "Then email 3 codes to user........."
         # query_update_value = "UPDATE channelTable SET veriCode"
         myTEXT = "Great! ٩( ᐖ )و  ∠( ᐛ 」∠)__  \n We are processing your business. You will receive one email in next few minutes."
         myTEXT = myTEXT + '\n *Please type the verification `code` in the email.*'

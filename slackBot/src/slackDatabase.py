@@ -22,11 +22,11 @@ else:
 	conn = sqlite3.connect('/home/yaojin/.SlackFile/channel.db')
 	cursor = conn.cursor()
 	cursor.execute('create table channelTable (channelId VARYING CHARACTER(255) primary key, veriCode VARYING CHARACTER(255), emailInfo VARCHAR(320))')
-	# executeValue = '('+repr(code_generator())+','+repr(code_generator())+')'
-	# executeHead = 'INSERT INTO channelTable (channelId, veriCode) VALUES'
-	# executeFull = executeHead + executeValue
-	# conn.execute(executeFull)
-	# conn.commit()
+	executeValue = '('+repr('TEST_account')+','+repr(code_generator())+')'
+	executeHead = 'INSERT INTO channelTable (channelId, veriCode) VALUES'
+	executeFull = executeHead + executeValue
+	conn.execute(executeFull)
+	conn.commit()
 
 
 
@@ -49,11 +49,11 @@ else:
 	conn2 = sqlite3.connect('/home/yaojin/.SlackFile/business.db')
 	cursor2 = conn2.cursor()
 	cursor2.execute('create table businessTable (rawID INTEGER PRIMARY KEY, channelID VARYING CHARACTER(255),veriCode VARYING CHARACTER(255), emailInfo VARCHAR(320) ,vCode1 VARYING CHARACTER(255),vCode2 VARYING CHARACTER(255),vCode3 VARYING CHARACTER(255), BusinessCode VARYING CHARACTER(255))')
-	# executeValue = '('+repr(code_generator())+','+repr(code_generator())+','+repr(code_generator())+')'
-	# executeHead = 'INSERT INTO channelTable (channelId, veriCode,BusinessCode) VALUES'
-	# executeFull = executeHead + executeValue
-	# conn.execute(executeFull)
-	# conn.commit()
+	executeValue = '('+repr('TEST_account')+','+repr(code_generator())+','+repr(code_generator())+','+repr(code_generator())+','+repr(code_generator())+','+repr(code_generator())+','+repr(code_generator())+')'
+	executeHead = 'INSERT INTO businessTable (channelId, veriCode,emailInfo,vCode1,vCode2,vCode3,BusinessCode) VALUES'
+	executeFull = executeHead + executeValue
+	conn2.execute(executeFull)
+	conn2.commit()
 
 
 
