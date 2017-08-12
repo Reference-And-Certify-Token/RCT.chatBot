@@ -1,0 +1,21 @@
+myRCT bot connected and running!
+help	<-->	G6LHPUWAX
+|:hsjd@g:|	<-->	G6LHPUWAX
+(u'TEST_account', u'W8HQ89PN', None)
+(u'G6LHPUWAX', u'4ONIAIQD', u'hsjd@g')
+======>input email
+!!!!!!		40 G6LHPUWAX (u'G6LHPUWAX', u'4ONIAIQD', u'hsjd@g')
+|:dhsjsj:|	<-->	G6LHPUWAX
+|:sjdjf@djdjdh:|	<-->	G6LHPUWAX
+(u'TEST_account', u'W8HQ89PN', None)
+(u'G6LHPUWAX', u'2Q5ZKYJB', u'sjdjf@djdjdh')
+======>input email
+!!!!!!		205zkyjb G6LHPUWAX (u'G6LHPUWAX', u'2Q5ZKYJB', u'sjdjf@djdjdh')
+Traceback (most recent call last):
+  File "slackBotRun.py", line 100, in <module>
+    main()
+  File "slackBotRun.py", line 88, in main
+    verifyBusiness(command, channel)
+  File "slackBotRun.py", line 58, in verifyBusiness
+    print command+"\t<-->\t"+channel
+UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-2: ordinal not in range(128)
